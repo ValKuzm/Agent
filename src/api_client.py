@@ -20,27 +20,27 @@ def _call_api(messages, temperature=0.3, max_tokens=500):
         "messages": messages
     }
     try:
-    resp = requests.post(url, json=body, headers=headers, timeout=60)
-    resp.raise_for_status()
+        resp = requests.post(url, json=body, headers=headers, timeout=60)
+        resp.raise_for_status()
     except requests.exceptions.RequestException as e:
         print("API request failed:", str(e))
         raise
+
     data = resp.json()
     if 'result' not in data:
         import json
         print("Server response:", json.dumps(data, indent=2, ensure_ascii=False))
         raise Exception("API did not return 'result'")
     raw_usage = data["result"]["usage"]
-    # Приводим числовые поля к int (пропуская вложенные словари, например completionTokensDetails)
     usage = {}
     for k, v in raw_usage.items():
         if isinstance(v, dict):
-            usage[k] = v   # оставляем как есть (например, completionTokensDetails)
+            usage[k] = v
         else:
             try:
                 usage[k] = int(v)
             except (ValueError, TypeError):
-                usage[k] = v   # если не получилось, оставляем исходное значение
+                usage[k] = v
     text = data["result"]["alternatives"][0]["message"]["text"]
     return text, usage
 
