@@ -19,7 +19,12 @@ def _call_api(messages, temperature=0.3, max_tokens=500):
         },
         "messages": messages
     }
-    resp = requests.post(url, json=body, headers=headers)
+    try:
+    resp = requests.post(url, json=body, headers=headers, timeout=60)
+    resp.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        print("API request failed:", str(e))
+        raise
     data = resp.json()
     if 'result' not in data:
         import json
