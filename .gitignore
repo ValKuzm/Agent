@@ -1,0 +1,11 @@
+venv/
+.venv/
+set_env.sh
+*.env
+__pycache__/
+*.pyc
+*.pyo
+.vscode/
+.idea/
+*.tmp
+*.bak
