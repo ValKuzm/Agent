@@ -1,6 +1,5 @@
 import sys
 import os
-# Добавляем корневую директорию проекта в sys.path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import csv
@@ -31,7 +30,13 @@ def main():
             "iterations": result["iterations"]
         }
         save_result(out_row)
-        print(f"Done. Tokens used: {result['tokens_used']}")
+        # Выводим ключевые результаты в консоль
+        print(f"  Expected : {result['expected_answer']}")
+        print(f"  Initial  : {result['initial_answer']}")
+        print(f"  Errors   : {result['errors']}")
+        print(f"  Corrected: {result['corrected_answer']}")
+        print(f"  Protocol : {result['protocol']}")
+        print(f"  Tokens used: {result['tokens_used']}")
 
     print("All tasks processed. Results in data/results.csv")
 
