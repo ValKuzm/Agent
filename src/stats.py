@@ -1,8 +1,17 @@
 import csv
 import os
+import re
 
 def normalize(s):
     return str(s).strip().lower()
+
+def extract_number(text):
+    """Извлекает последнее целое или дробное число из строки."""
+    # Ищем числа вида 123, 45.6, -5, 3/4 и т.п.
+    matches = re.findall(r'-?\d+\.?\d*', text)
+    if matches:
+        return matches[-1]  # последнее число
+    return text
 
 def calc_baseline_stats(filename):
     acc, n = 0.0, 0
@@ -12,10 +21,11 @@ def calc_baseline_stats(filename):
     with open(filename, 'r', encoding='utf-8') as f:
         for row in csv.DictReader(f):
             exp = normalize(row.get('expected_answer', ''))
-            ans = normalize(row.get('answer', ''))
-            if exp and ans:
+            ans_full = row.get('answer', '')
+            ans_num = normalize(extract_number(ans_full))
+            if exp and ans_num:
                 n += 1
-                if exp == ans:
+                if exp == ans_num:
                     acc += 1
             try:
                 tokens.append(int(row.get('tokens_used', 0)))
@@ -31,11 +41,11 @@ def calc_selfref_stats(filename):
     with open(filename, 'r', encoding='utf-8') as f:
         for row in csv.DictReader(f):
             exp = normalize(row.get('expected_answer', ''))
-            # selfref не исправляет, используем initial_answer
-            init = normalize(row.get('initial_answer', ''))
-            if exp and init:
+            init_full = row.get('initial_answer', '')
+            init_num = normalize(extract_number(init_full))
+            if exp and init_num:
                 n += 1
-                if exp == init:
+                if exp == init_num:
                     acc += 1
             try:
                 tokens.append(int(row.get('tokens_used', 0)))
@@ -54,20 +64,21 @@ def calc_meta_stats(filename):
     with open(filename, 'r', encoding='utf-8') as f:
         for row in csv.DictReader(f):
             exp = normalize(row.get('expected_answer', ''))
-            # используем corrected_final, если его нет – corrected_answer
-            corr_ans = normalize(row.get('corrected_final', row.get('corrected_answer', '')))
-            if exp and corr_ans:
+            # используем corrected_final, если пусто — corrected_answer
+            corr_full = row.get('corrected_final', row.get('corrected_answer', ''))
+            corr_num = normalize(extract_number(corr_full))
+            init_full = row.get('initial_final', row.get('initial_answer', ''))
+            init_num = normalize(extract_number(init_full))
+            if exp and corr_num:
                 n += 1
-                if exp == corr_ans:
+                if exp == corr_num:
                     acc += 1
-            # для Error Correction Rate и локализации
-            init_ans = normalize(row.get('initial_final', row.get('initial_answer', '')))
-            if exp and init_ans:
-                if init_ans != exp:
+            if exp and init_num:
+                if init_num != exp:
                     initial_errors += 1
-                    if corr_ans == exp:
+                    if corr_num == exp:
                         corrected += 1
-            # локализация
+            # локализация — проверяем, есть ли [Error Found]\nYES
             err_text = row.get('errors', '')
             if '[Error Found]\nYES' in err_text:
                 localized += 1
@@ -86,23 +97,20 @@ if __name__ == "__main__":
     meta_acc, meta_n, meta_tok, meta_ecr, meta_loc_count, meta_loc_rate = calc_meta_stats("data/results.csv")
 
     print("=" * 60)
-    print("ЭКСПЕРИМЕНТАЛЬНЫЕ МЕТРИКИ")
+    print("ЭКСПЕРИМЕНТАЛЬНЫЕ МЕТРИКИ (с извлечением последнего числа)")
     print("=" * 60)
 
-    print(f"\nBaseline (простой prompting) – задач: {bl_n}")
+    print(f"\nBaseline – задач: {bl_n}")
     print(f"  Accuracy: {bl_acc:.3f} ({bl_acc*100:.1f}%)")
     print(f"  Avg tokens: {bl_tok:.1f}")
 
-    print(f"\nSelf-reflection (ответ + критика) – задач: {sr_n}")
+    print(f"\nSelf-reflection – задач: {sr_n}")
     print(f"  Accuracy: {sr_acc:.3f} ({sr_acc*100:.1f}%)")
     print(f"  Avg tokens: {sr_tok:.1f}")
 
-    print(f"\nMeta-correction (полный цикл) – задач: {meta_n}")
+    print(f"\nMeta-correction – задач: {meta_n}")
     print(f"  Accuracy (corrected): {meta_acc:.3f} ({meta_acc*100:.1f}%)")
     print(f"  Error Correction Rate: {meta_ecr:.3f} ({meta_ecr*100:.1f}%)")
     print(f"  Localization Success: {meta_loc_rate:.3f} ({meta_loc_rate*100:.1f}%)")
     print(f"  Avg tokens: {meta_tok:.1f}")
-    print(f"  Avg iterations: 1.0 (фиксировано)")
-
-    print("\nПримечание: Avg iterations = 1.0, т.к. используется одна итерация коррекции.")
-    print("Localization Success – доля случаев, когда ошибка была обнаружена моделью.")
+    print(f"  Avg iterations: 1.0")
