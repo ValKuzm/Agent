@@ -43,20 +43,17 @@ def run_selfreflection(task, expected_answer=None):
 
     # INITIAL
     system_initial = load_prompt("initial_prompt.txt")
-
     answer, usage1 = ask_yandexgpt_with_usage(
         task,
         system_text=system_initial,
         temperature=0.3,
         max_tokens=300
     )
-
     result["initial_answer"] = answer
     result["tokens_used"] += usage1.get("totalTokens", 0)
 
     # CRITIQUE
     system_critique = load_prompt("critique_prompt.txt")
-
     critique_prompt = f"""
 Задача:
 {task}
@@ -64,22 +61,18 @@ def run_selfreflection(task, expected_answer=None):
 Решение:
 {answer}
 """
-
     errors, usage2 = ask_yandexgpt_with_usage(
         critique_prompt,
         system_text=system_critique,
         temperature=0.2,
         max_tokens=250
     )
-
     result["errors"] = errors
     result["tokens_used"] += usage2.get("totalTokens", 0)
 
-    # SELF-CORRECTION
+    # SELF-CORRECTION (if error found)
     if "[Error Found]\nYES" in errors:
-
         system_corr = load_prompt("correction_prompt.txt")
-
         corr_prompt = f"""
 Задача:
 {task}
@@ -90,21 +83,19 @@ def run_selfreflection(task, expected_answer=None):
 Диагностика ошибок:
 {errors}
 """
-
         corrected, usage3 = ask_yandexgpt_with_usage(
             corr_prompt,
             system_text=system_corr,
             temperature=0.2,
             max_tokens=300
         )
-
         result["final_answer"] = corrected
         result["tokens_used"] += usage3.get("totalTokens", 0)
-
     else:
         result["final_answer"] = answer
 
     return result
+
 # ------------------- META-CORRECTION -------------------
 def run_task(task, expected_answer=None):
     result = {
@@ -165,16 +156,16 @@ def save_result(result, filename="data/results.csv"):
     if result.get("method") == "baseline":
         fnames = ["task","expected_answer","answer","tokens_used","iterations","method"]
     elif result.get("method") == "selfref":
-    fnames = [
-        "task",
-        "expected_answer",
-        "initial_answer",
-        "errors",
-        "final_answer",
-        "tokens_used",
-        "iterations",
-        "method"
-    ]
+        fnames = [
+            "task",
+            "expected_answer",
+            "initial_answer",
+            "errors",
+            "final_answer",
+            "tokens_used",
+            "iterations",
+            "method"
+        ]
     else:
         fnames = ["task","expected_answer","initial_answer","initial_final","errors",
                   "corrected_answer","corrected_final","protocol","tokens_used","iterations","method"]
