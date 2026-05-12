@@ -1,16 +1,11 @@
-import csv
-import os
-import re
+import csv, os, re
 
 def normalize(s):
     return str(s).strip().lower()
 
 def extract_number(text):
-    """Извлекает последнее целое или дробное число из строки."""
     matches = re.findall(r'-?\d+\.?\d*', text)
-    if matches:
-        return matches[-1]  # последнее число
-    return text
+    return matches[-1] if matches else text
 
 def calc_baseline_stats(filename):
     acc, n = 0.0, 0
@@ -20,17 +15,16 @@ def calc_baseline_stats(filename):
     with open(filename, 'r', encoding='utf-8') as f:
         for row in csv.DictReader(f):
             exp = normalize(row.get('expected_answer', ''))
-            ans_full = row.get('answer', '')
-            ans_num = normalize(extract_number(ans_full))
-            if exp and ans_num:
+            ans = normalize(extract_number(row.get('answer', '')))
+            if exp and ans:
                 n += 1
-                if exp == ans_num:
+                if exp == ans:
                     acc += 1
             try:
-                tokens.append(int(row.get('tokens_used', 0)))
+                tokens.append(int(row['tokens_used']))
             except:
                 pass
-    return acc / n if n > 0 else 0.0, n, sum(tokens) / len(tokens) if tokens else 0.0
+    return acc / n if n > 0 else 0.0, n, sum(tokens)/len(tokens) if tokens else 0.0
 
 def calc_selfref_stats(filename):
     acc, n = 0.0, 0
@@ -42,25 +36,24 @@ def calc_selfref_stats(filename):
     with open(filename, 'r', encoding='utf-8') as f:
         for row in csv.DictReader(f):
             exp = normalize(row.get('expected_answer', ''))
-            init_full = row.get('initial_answer', '')
-            final_full = row.get('final_answer', init_full)  # fallback на initial
-            init_num = normalize(extract_number(init_full))
-            final_num = normalize(extract_number(final_full))
+            init_ans = row.get('initial_answer', '')
+            final_ans = row.get('final_answer', init_ans)
+            init_num = normalize(extract_number(init_ans))
+            final_num = normalize(extract_number(final_ans))
             if exp and final_num:
                 n += 1
                 if exp == final_num:
                     acc += 1
-                # Error Correction Rate: была ли ошибка в initial и исправлена ли в final
                 if init_num and init_num != exp:
                     initial_errors += 1
                     if final_num == exp:
                         corrected += 1
             try:
-                tokens.append(int(row.get('tokens_used', 0)))
+                tokens.append(int(row['tokens_used']))
             except:
                 pass
     ecr = corrected / initial_errors if initial_errors > 0 else 0.0
-    avg_tok = sum(tokens) / len(tokens) if tokens else 0.0
+    avg_tok = sum(tokens)/len(tokens) if tokens else 0.0
     return acc, n, avg_tok, ecr, initial_errors
 
 def calc_meta_stats(filename):
@@ -87,18 +80,17 @@ def calc_meta_stats(filename):
                     initial_errors += 1
                     if corr_num == exp:
                         corrected += 1
-            # локализация: ищем YES гибко
             err_text = row.get('errors', '')
             if re.search(r'\[Error Found\]\s*YES', err_text, re.IGNORECASE):
                 localized += 1
             try:
-                tokens.append(int(row.get('tokens_used', 0)))
+                tokens.append(int(row['tokens_used']))
             except:
                 pass
     ecr = corrected / initial_errors if initial_errors > 0 else 0.0
     loc_rate = localized / initial_errors if initial_errors > 0 else 0.0
-    avg_tokens = sum(tokens) / len(tokens) if tokens else 0.0
-    return acc / n if n > 0 else 0.0, n, avg_tokens, ecr, localized, loc_rate
+    avg_tok = sum(tokens)/len(tokens) if tokens else 0.0
+    return acc / n if n > 0 else 0.0, n, avg_tok, ecr, localized, loc_rate
 
 if __name__ == "__main__":
     bl_acc, bl_n, bl_tok = calc_baseline_stats("data/baseline_results.csv")
