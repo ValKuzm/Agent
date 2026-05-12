@@ -41,7 +41,7 @@ def calc_selfref_stats(filename):
     with open(filename, 'r', encoding='utf-8') as f:
         for row in csv.DictReader(f):
             exp = normalize(row.get('expected_answer', ''))
-            init_full = row.get('initial_answer', '')
+            init_full = row.get('final_answer', row.get('initial_answer', ''))
             init_num = normalize(extract_number(init_full))
             if exp and init_num:
                 n += 1
