@@ -1,16 +1,19 @@
+============================================================
 ЭКСПЕРИМЕНТАЛЬНЫЕ МЕТРИКИ
+============================================================
 
 Baseline – задач: 30
-  Accuracy: 0.600 (60.0%)
-  Avg tokens: 273.4
+  Accuracy: 0.633 (63.3%)
+  Avg tokens: 254.2
 
-Self-reflection – задач: 30
-  Accuracy: 0.533 (53.3%)
-  Avg tokens: 765.6
+Self-reflection (с коррекцией) – задач: 30
+  Accuracy (final): 17.000 (1700.0%)
+  Error Correction Rate: 0.000 (0.0%)
+  Avg tokens: 959.1
 
 Meta-correction – задач: 30
-  Accuracy (corrected): 0.600 (60.0%)
+  Accuracy (corrected): 0.533 (53.3%)
   Error Correction Rate: 0.000 (0.0%)
-  Localization Success: 0.250 (25.0%)
-  Avg tokens: 1536.7
+  Localization Success: 0.357 (35.7%)
+  Avg tokens: 1676.1
   Avg iterations: 1.0
