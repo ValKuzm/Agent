@@ -78,7 +78,7 @@ if __name__ == "__main__":
     print(f"  Среднее токенов: {bl_tokens:.1f}")
 
     # Self‑reflection
-    sr_acc, sr_total = calc_accuracy("data/selfref_results.csv", "initial_answer")
+    sr_acc, sr_total = calc_accuracy("data/selfref_results.csv", "final_answer")
     sr_tokens = calc_avg_tokens("data/selfref_results.csv")
     print(f"\nSelf‑reflection (ответ + критика):")
     print(f"  Всего задач: {sr_total}")
