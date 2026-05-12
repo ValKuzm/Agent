@@ -135,7 +135,7 @@ def run_task(task, expected_answer=None):
     result["errors"] = errors
     result["tokens_used"] += usage.get("totalTokens", 0)
 
-    if "[Error Found]\nNO" in errors:
+    if re.search(r"\[Error Found\]\s*NO", errors, re.IGNORECASE):
         corrected = answer
     else:
         sys_corr = load_prompt("correction_prompt.txt")
