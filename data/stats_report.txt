@@ -1,21 +1,18 @@
 ============================================================
-ЭКСПЕРИМЕНТАЛЬНЫЕ МЕТРИКИ
+ЭКСПЕРИМЕНТАЛЬНЫЕ МЕТРИКИ (с извлечением последнего числа)
 ============================================================
 
-Baseline (простой prompting) – задач: 30
-  Accuracy: 0.000 (0.0%)
+Baseline – задач: 30
+  Accuracy: 0.600 (60.0%)
   Avg tokens: 273.4
 
-Self-reflection (ответ + критика) – задач: 30
-  Accuracy: 0.000 (0.0%)
+Self-reflection – задач: 30
+  Accuracy: 0.533 (53.3%)
   Avg tokens: 765.6
 
-Meta-correction (полный цикл) – задач: 30
-  Accuracy (corrected): 0.267 (26.7%)
+Meta-correction – задач: 30
+  Accuracy (corrected): 0.600 (60.0%)
   Error Correction Rate: 0.000 (0.0%)
-  Localization Success: 0.136 (13.6%)
+  Localization Success: 0.250 (25.0%)
   Avg tokens: 1536.7
-  Avg iterations: 1.0 (фиксировано)
-
-Примечание: Avg iterations = 1.0, т.к. используется одна итерация коррекции.
-Localization Success – доля случаев, когда ошибка была обнаружена моделью.
+  Avg iterations: 1.0
