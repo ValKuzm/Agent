@@ -74,6 +74,7 @@ def run_verification(task, answer, expected_answer=None):
         temperature=0.1,
         max_tokens=200
     )
+    time.sleep(0.5)
     # Извлекаем результат
     m = re.search(r"\[Verification Result\]\s*(ПРАВИЛЬНО|НЕПРАВИЛЬНО)", response, re.IGNORECASE)
     result = m.group(1).upper() if m else "НЕПРАВИЛЬНО"
@@ -130,6 +131,7 @@ def run_selfreflection(task, expected_answer=None, max_iterations=3):
         temperature=0.3,
         max_tokens=300
     )
+    time.sleep(0.5)
     result["initial_answer"] = answer
     result["tokens_used"] += usage.get("totalTokens", 0)
     
@@ -160,6 +162,7 @@ def run_selfreflection(task, expected_answer=None, max_iterations=3):
             temperature=0.2,
             max_tokens=200
         )
+        time.sleep(0.5)
         result["tokens_used"] += usage.get("totalTokens", 0)
 
         # Если critique не нашёл ошибок – выходим
@@ -199,6 +202,7 @@ def run_selfreflection(task, expected_answer=None, max_iterations=3):
             temperature=0.2,
             max_tokens=300
         )
+        time.sleep(0.5)
         result["tokens_used"] += usage.get("totalTokens", 0)
 
         # Извлекаем исправленный ответ (пытаемся найти [Final Answer] внутри corrected)
@@ -247,8 +251,9 @@ def run_meta_correction(task, expected_answer=None, max_iterations=3):
         task,
         system_text=sys_init,
         temperature=0.3,
-        max_tokens=300
+        max_tokens=500
     )
+    time.sleep(0.5)
     result["initial_answer"] = answer
     result["initial_final"] = extract_final_answer(answer)
     result["tokens_used"] += usage.get("totalTokens", 0)
@@ -280,6 +285,7 @@ def run_meta_correction(task, expected_answer=None, max_iterations=3):
             temperature=0.2,
             max_tokens=200
         )
+        time.sleep(0.5)
         result["tokens_used"] += usage.get("totalTokens", 0)
         result["errors"] = errors_text
 
@@ -320,6 +326,7 @@ def run_meta_correction(task, expected_answer=None, max_iterations=3):
             temperature=0.2,
             max_tokens=300
         )
+        time.sleep(0.5)
         result["tokens_used"] += usage.get("totalTokens", 0)
 
         corrected_answer_full = corrected
@@ -354,6 +361,7 @@ def run_meta_correction(task, expected_answer=None, max_iterations=3):
                 temperature=0.1,
                 max_tokens=150
             )
+            time.sleep(0.5)
             result["protocol"] = protocol
             result["tokens_used"] += usage.get("totalTokens", 0)
             return result
