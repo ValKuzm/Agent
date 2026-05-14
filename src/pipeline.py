@@ -57,7 +57,6 @@ def run_baseline(task, expected_answer=None):
 # =========================================================
 
 def run_selfreflection(task, expected_answer=None):
-
     result = {
         "task": task,
         "expected_answer": expected_answer,
@@ -69,24 +68,19 @@ def run_selfreflection(task, expected_answer=None):
         "method": "selfref"
     }
 
-    # ---------------- INITIAL ANSWER ----------------
-
+    # ---------------- INITIAL ----------------
     system_initial = load_prompt("initial_prompt.txt")
-
     answer, usage1 = ask_yandexgpt_with_usage(
         task,
         system_text=system_initial,
         temperature=0.3,
         max_tokens=300
     )
-
     result["initial_answer"] = answer
     result["tokens_used"] += usage1.get("totalTokens", 0)
 
     # ---------------- CRITIQUE ----------------
-
     system_critique = load_prompt("critique_prompt.txt")
-
     critique_prompt = f"""
 Задача:
 {task}
@@ -94,27 +88,18 @@ def run_selfreflection(task, expected_answer=None):
 Ответ модели:
 {answer}
 """
-
     errors, usage2 = ask_yandexgpt_with_usage(
         critique_prompt,
         system_text=system_critique,
         temperature=0.2,
         max_tokens=200
     )
-
     result["errors"] = errors
     result["tokens_used"] += usage2.get("totalTokens", 0)
 
-    # ---------------- SELF-CORRECTION ----------------
-
-    if re.search(r'\[Error Found\]\s*NO', errors, re.IGNORECASE):
-
-        final_answer = answer
-
-    else:
-
+    # ---------------- SELF-CORRECTION (только при YES) ----------------
+    if re.search(r'\[Error Found\]\s*YES', errors, re.IGNORECASE):
         system_correction = load_prompt("correction_prompt.txt")
-
         correction_prompt = f"""
 Задача:
 {task}
@@ -127,29 +112,27 @@ def run_selfreflection(task, expected_answer=None):
 
 Исправь ответ.
 """
-
         corrected, usage3 = ask_yandexgpt_with_usage(
             correction_prompt,
             system_text=system_correction,
             temperature=0.2,
             max_tokens=300
         )
-
         final_answer = corrected
-
         result["tokens_used"] += usage3.get("totalTokens", 0)
+    else:
+        final_answer = answer
 
+    # Сохраняем полный текст, а stats.py сам извлечёт число через extract_number
     result["final_answer"] = final_answer
 
     return result
-
 
 # =========================================================
 # META-CORRECTION
 # =========================================================
 
 def run_task(task, expected_answer=None):
-
     result = {
         "task": task,
         "expected_answer": expected_answer,
@@ -165,25 +148,19 @@ def run_task(task, expected_answer=None):
     }
 
     # ---------------- INITIAL ----------------
-
     sys_init = load_prompt("initial_prompt.txt")
-
     answer, usage = ask_yandexgpt_with_usage(
         task,
         system_text=sys_init,
         temperature=0.3,
         max_tokens=300
     )
-
     result["initial_answer"] = answer
     result["initial_final"] = extract_final_answer(answer)
-
     result["tokens_used"] += usage.get("totalTokens", 0)
 
     # ---------------- CRITIQUE ----------------
-
     sys_crit = load_prompt("critique_prompt.txt")
-
     crit_prompt = f"""
 Задача:
 {task}
@@ -191,28 +168,18 @@ def run_task(task, expected_answer=None):
 Ответ:
 {answer}
 """
-
     errors, usage = ask_yandexgpt_with_usage(
         crit_prompt,
         system_text=sys_crit,
         temperature=0.2,
         max_tokens=200
     )
-
     result["errors"] = errors
-
     result["tokens_used"] += usage.get("totalTokens", 0)
 
-    # ---------------- CORRECTION ----------------
-
-    if re.search(r'\[Error Found\]\s*NO', errors, re.IGNORECASE):
-
-        corrected = answer
-
-    else:
-
+    # ---------------- CORRECTION (только при YES) ----------------
+    if re.search(r'\[Error Found\]\s*YES', errors, re.IGNORECASE):
         sys_corr = load_prompt("correction_prompt.txt")
-
         corr_prompt = f"""
 Задача:
 {task}
@@ -223,23 +190,22 @@ def run_task(task, expected_answer=None):
 Найденные ошибки:
 {errors}
 """
-
         corrected, usage = ask_yandexgpt_with_usage(
             corr_prompt,
             system_text=sys_corr,
             temperature=0.2,
             max_tokens=300
         )
-
         result["tokens_used"] += usage.get("totalTokens", 0)
+    else:
+        # Ошибок нет (или формат не соблюдён) – оставляем исходный ответ
+        corrected = answer
 
     result["corrected_answer"] = corrected
     result["corrected_final"] = extract_final_answer(corrected)
 
     # ---------------- PROTOCOL ----------------
-
     sys_prot = load_prompt("protocol_prompt.txt")
-
     prot_prompt = f"""
 Задача:
 {task}
@@ -253,16 +219,13 @@ def run_task(task, expected_answer=None):
 Исправленный ответ:
 {corrected}
 """
-
     protocol, usage = ask_yandexgpt_with_usage(
         prot_prompt,
         system_text=sys_prot,
         temperature=0.1,
         max_tokens=150
     )
-
     result["protocol"] = protocol
-
     result["tokens_used"] += usage.get("totalTokens", 0)
 
     return result
