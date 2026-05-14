@@ -3,17 +3,17 @@
 ============================================================
 
 Baseline – задач: 30.0
-  Accuracy: 0.733 (73.3%)
-  Avg tokens: 254.4
+  Accuracy: 0.767 (76.7%)
+  Avg tokens: 255.9
 
 Self-reflection (с коррекцией) – задач: 30.0
-  Accuracy (final): 0.833 (83.3%)
+  Accuracy (final): 0.767 (76.7%)
   Error Correction Rate: 0.286 (28.6%)
-  Avg tokens: 2033.5
+  Avg tokens: 3139.9
 
 Meta-correction – задач: 30.0
-  Accuracy (corrected): 0.800 (80.0%)
-  Error Correction Rate: 0.000 (0.0%)
-  Localization Success: 0.500 (50.0%)
-  Avg tokens: 1514.8
+  Accuracy (corrected): 0.900 (90.0%)
+  Error Correction Rate: 0.625 (62.5%)
+  Localization Success: 0.375 (37.5%)
+  Avg tokens: 1898.6
   Avg iterations: 1.0
