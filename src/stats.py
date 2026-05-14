@@ -226,28 +226,26 @@ if __name__ == "__main__":
         "data/results.csv"
     )
 
-    print("=" * 60)
-    print("ЭКСПЕРИМЕНТАЛЬНЫЕ МЕТРИКИ")
-    print("=" * 60)
+    # Запись в stats.txt
+    with open("data/stats.txt", "w", encoding="utf-8") as f:
+        f.write("=" * 60 + "\n")
+        f.write("ЭКСПЕРИМЕНТАЛЬНЫЕ МЕТРИКИ\n")
+        f.write("=" * 60 + "\n\n")
 
-    # BASELINE
+        f.write(f"Baseline – задач: {bl_n}\n")
+        f.write(f"  Accuracy: {bl_acc:.3f} ({bl_acc*100:.1f}%)\n")
+        f.write(f"  Avg tokens: {bl_tok:.1f}\n\n")
 
-    print(f"\nBaseline – задач: {bl_n}")
-    print(f"  Accuracy: {bl_acc:.3f} ({bl_acc*100:.1f}%)")
-    print(f"  Avg tokens: {bl_tok:.1f}")
+        f.write(f"Self-reflection (с коррекцией) – задач: {sr_n}\n")
+        f.write(f"  Accuracy (final): {sr_acc:.3f} ({sr_acc*100:.1f}%)\n")
+        f.write(f"  Error Correction Rate: {sr_ecr:.3f} ({sr_ecr*100:.1f}%)\n")
+        f.write(f"  Avg tokens: {sr_tok:.1f}\n\n")
 
-    # SELFREF
+        f.write(f"Meta-correction – задач: {meta_n}\n")
+        f.write(f"  Accuracy (corrected): {meta_acc:.3f} ({meta_acc*100:.1f}%)\n")
+        f.write(f"  Error Correction Rate: {meta_ecr:.3f} ({meta_ecr*100:.1f}%)\n")
+        f.write(f"  Localization Success: {meta_loc_rate:.3f} ({meta_loc_rate*100:.1f}%)\n")
+        f.write(f"  Avg tokens: {meta_tok:.1f}\n")
+        f.write(f"  Avg iterations: 1.0\n")
 
-    print(f"\nSelf-reflection (с коррекцией) – задач: {sr_n}")
-    print(f"  Accuracy (final): {sr_acc:.3f} ({sr_acc*100:.1f}%)")
-    print(f"  Error Correction Rate: {sr_ecr:.3f} ({sr_ecr*100:.1f}%)")
-    print(f"  Avg tokens: {sr_tok:.1f}")
-
-    # META
-
-    print(f"\nMeta-correction – задач: {meta_n}")
-    print(f"  Accuracy (corrected): {meta_acc:.3f} ({meta_acc*100:.1f}%)")
-    print(f"  Error Correction Rate: {meta_ecr:.3f} ({meta_ecr*100:.1f}%)")
-    print(f"  Localization Success: {meta_loc_rate:.3f} ({meta_loc_rate*100:.1f}%)")
-    print(f"  Avg tokens: {meta_tok:.1f}")
-    print(f"  Avg iterations: 1.0")
+    print("\nРезультаты также сохранены в data/stats.txt")
