@@ -8,7 +8,6 @@ def extract_number(text):
     return matches[-1] if matches else text
 
 def answers_match(a, b):
-    """Мягкое сравнение: true, если строки равны или одна содержит другую."""
     a_norm = normalize(a)
     b_norm = normalize(b)
     if a_norm == b_norm:
@@ -20,75 +19,71 @@ def answers_match(a, b):
     return normalize(num_a) == normalize(num_b)
 
 def calc_baseline_stats(filename):
-    acc, n = 0.0, 0
-    tokens = []
-    iters = []
+    correct = total = 0.0
+    tokens, iters = [], []
     if not os.path.isfile(filename):
-        return acc, n, 0.0, 1.0
+        return 0.0, 0, 0.0, 1.0
     with open(filename, 'r', encoding='utf-8') as f:
         for row in csv.DictReader(f):
             exp = row.get('expected_answer', '').strip()
             ans = row.get('answer', '').strip()
             if not exp or not ans:
                 continue
-            n += 1
+            total += 1
             if answers_match(exp, ans):
-                acc += 1
+                correct += 1
             try:
-                tokens.append(int(row.get('tokens_used', 0)))
-                iters.append(int(row.get('iterations', 1)))
+                tokens.append(int(row['tokens_used']))
+                iters.append(int(row['iterations']))
             except:
                 pass
-    avg_tok = sum(tokens) / len(tokens) if tokens else 0.0
-    avg_iter = sum(iters) / len(iters) if iters else 1.0
-    return acc / n if n > 0 else 0.0, n, avg_tok, avg_iter
+    avg_tok = sum(tokens)/len(tokens) if tokens else 0.0
+    avg_iter = sum(iters)/len(iters) if iters else 1.0
+    acc = correct / total if total > 0 else 0.0
+    return acc, total, avg_tok, avg_iter
 
 def calc_selfref_stats(filename):
-    acc, n = 0.0, 0
-    tokens = []
-    iters = []
+    correct = total = 0.0
+    tokens, iters = [], []
     initial_errors = 0
     corrected = 0
     if not os.path.isfile(filename):
-        return acc, n, 0.0, 0.0, 0, 1.0
+        return 0.0, 0, 0.0, 0.0, 0, 1.0
     with open(filename, 'r', encoding='utf-8') as f:
         for row in csv.DictReader(f):
             exp = row.get('expected_answer', '').strip()
             init_ans = row.get('initial_answer', '').strip()
             final_ans = row.get('final_answer', '').strip()
-            # Если final_answer пуст, берём initial_answer
             if not final_ans:
                 final_ans = init_ans
-            # Пропускаем, если нет expected или нет финального ответа
             if not exp or not final_ans:
                 continue
-            n += 1
+            total += 1
             if answers_match(exp, final_ans):
-                acc += 1
-            # Error Correction Rate
+                correct += 1
             if init_ans and not answers_match(exp, init_ans):
                 initial_errors += 1
                 if answers_match(exp, final_ans):
                     corrected += 1
             try:
-                tokens.append(int(row.get('tokens_used', 0)))
-                iters.append(int(row.get('iterations', 1)))
+                tokens.append(int(row['tokens_used']))
+                iters.append(int(row['iterations']))
             except:
                 pass
     ecr = corrected / initial_errors if initial_errors > 0 else 0.0
-    avg_tok = sum(tokens) / len(tokens) if tokens else 0.0
-    avg_iter = sum(iters) / len(iters) if iters else 1.0
-    return acc, n, avg_tok, ecr, initial_errors, avg_iter
+    avg_tok = sum(tokens)/len(tokens) if tokens else 0.0
+    avg_iter = sum(iters)/len(iters) if iters else 1.0
+    acc = correct / total if total > 0 else 0.0
+    return acc, total, avg_tok, ecr, initial_errors, avg_iter
 
 def calc_meta_stats(filename):
-    acc, n = 0.0, 0
-    tokens = []
-    iters = []
+    correct = total = 0.0
+    tokens, iters = [], []
     initial_errors = 0
     corrected = 0
     localized = 0
     if not os.path.isfile(filename):
-        return acc, n, 0.0, 0.0, 0, 0.0, 1.0
+        return 0.0, 0, 0.0, 0.0, 0, 0.0, 1.0
     with open(filename, 'r', encoding='utf-8') as f:
         for row in csv.DictReader(f):
             exp = row.get('expected_answer', '').strip()
@@ -97,16 +92,15 @@ def calc_meta_stats(filename):
                 corr_full = row.get('corrected_answer', '').strip()
             init_full = row.get('initial_final', '').strip()
             if not init_full:
+                # fallback на initial_answer, если initial_final пуст
                 init_full = row.get('initial_answer', '').strip()
             if not exp or not corr_full:
                 continue
-            n += 1
+            total += 1
             if answers_match(exp, corr_full):
-                acc += 1
-            # Error Correction Rate + Localization
+                correct += 1
             if init_full:
-                init_wrong = not answers_match(exp, init_full)
-                if init_wrong:
+                if not answers_match(exp, init_full):
                     initial_errors += 1
                     if answers_match(exp, corr_full):
                         corrected += 1
@@ -114,15 +108,16 @@ def calc_meta_stats(filename):
             if re.search(r'\[Error Found\]\s*(YES|ДА)', err_text, re.IGNORECASE):
                 localized += 1
             try:
-                tokens.append(int(row.get('tokens_used', 0)))
-                iters.append(int(row.get('iterations', 1)))
+                tokens.append(int(row['tokens_used']))
+                iters.append(int(row['iterations']))
             except:
                 pass
     ecr = corrected / initial_errors if initial_errors > 0 else 0.0
     loc_rate = localized / initial_errors if initial_errors > 0 else 0.0
-    avg_tok = sum(tokens) / len(tokens) if tokens else 0.0
-    avg_iter = sum(iters) / len(iters) if iters else 1.0
-    return acc / n if n > 0 else 0.0, n, avg_tok, ecr, localized, loc_rate, avg_iter
+    avg_tok = sum(tokens)/len(tokens) if tokens else 0.0
+    avg_iter = sum(iters)/len(iters) if iters else 1.0
+    acc = correct / total if total > 0 else 0.0
+    return acc, total, avg_tok, ecr, localized, loc_rate, avg_iter
 
 if __name__ == "__main__":
     bl_acc, bl_n, bl_tok, bl_iter = calc_baseline_stats("data/baseline_results.csv")
@@ -130,7 +125,7 @@ if __name__ == "__main__":
     meta_acc, meta_n, meta_tok, meta_ecr, meta_loc, meta_loc_rate, meta_iter = calc_meta_stats("data/results.csv")
 
     print("=" * 60)
-    print("ЭКСПЕРИМЕНТАЛЬНЫЕ МЕТРИКИ (исправленные)")
+    print("ЭКСПЕРИМЕНТАЛЬНЫЕ МЕТРИКИ (финальные)")
     print("=" * 60)
 
     print(f"\nBaseline – задач: {bl_n}")
