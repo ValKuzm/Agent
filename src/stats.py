@@ -56,13 +56,16 @@ def calc_selfref_stats(filename):
             exp = row.get('expected_answer', '').strip()
             init_ans = row.get('initial_answer', '').strip()
             final_ans = row.get('final_answer', '').strip()
+            # Если final_answer пуст, берём initial_answer
             if not final_ans:
                 final_ans = init_ans
+            # Пропускаем, если нет expected или нет финального ответа
             if not exp or not final_ans:
                 continue
             n += 1
             if answers_match(exp, final_ans):
                 acc += 1
+            # Error Correction Rate
             if init_ans and not answers_match(exp, init_ans):
                 initial_errors += 1
                 if answers_match(exp, final_ans):
@@ -100,10 +103,13 @@ def calc_meta_stats(filename):
             n += 1
             if answers_match(exp, corr_full):
                 acc += 1
-            if init_full and not answers_match(exp, init_full):
-                initial_errors += 1
-                if answers_match(exp, corr_full):
-                    corrected += 1
+            # Error Correction Rate + Localization
+            if init_full:
+                init_wrong = not answers_match(exp, init_full)
+                if init_wrong:
+                    initial_errors += 1
+                    if answers_match(exp, corr_full):
+                        corrected += 1
             err_text = row.get('errors', '')
             if re.search(r'\[Error Found\]\s*(YES|ДА)', err_text, re.IGNORECASE):
                 localized += 1
@@ -124,7 +130,7 @@ if __name__ == "__main__":
     meta_acc, meta_n, meta_tok, meta_ecr, meta_loc, meta_loc_rate, meta_iter = calc_meta_stats("data/results.csv")
 
     print("=" * 60)
-    print("ЭКСПЕРИМЕНТАЛЬНЫЕ МЕТРИКИ (с реальными итерациями)")
+    print("ЭКСПЕРИМЕНТАЛЬНЫЕ МЕТРИКИ (исправленные)")
     print("=" * 60)
 
     print(f"\nBaseline – задач: {bl_n}")
