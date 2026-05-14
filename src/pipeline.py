@@ -16,21 +16,16 @@ def load_prompt(fname):
 
 
 def extract_final_answer(text):
-    """
-    Извлекает текст после [Final Answer]
-    """
-
-    m = re.search(
-        r"\[Final Answer\]\s*(.*)",
-        text,
-        re.DOTALL | re.IGNORECASE
-    )
-
+    # 1. Ищем [Final Answer] (с любым регистром)
+    m = re.search(r"\[Final Answer\]\s*(.*)", text, re.DOTALL | re.IGNORECASE)
     if m:
         return m.group(1).strip()
-
+    # 2. Ищем последнее число, если маркера нет (запасной вариант)
+    nums = re.findall(r'-?\d+\.?\d+', text)
+    if nums:
+        return nums[-1]
+    # 3. Если совсем ничего нет, возвращаем весь текст (для нечисловых ответов)
     return text.strip()
-
 
 # =========================================================
 # BASELINE
