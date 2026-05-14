@@ -4,19 +4,43 @@ def normalize(s):
     return str(s).strip().lower()
 
 def extract_number(text):
+    """Извлекает последнее целое или дробное число из строки."""
     matches = re.findall(r'-?\d+\.?\d*', text)
     return matches[-1] if matches else text
 
+def remove_units(s):
+    """Удаляет типичные единицы измерения и лишние пробелы."""
+    s = normalize(s)
+    for unit in ["км", "рублей", "рубля", "руб.", "секунд", "минут", "кошек", "конфет", "дней", "лет", "час"]:
+        s = s.replace(unit, "")
+    # Удаляем оставшиеся не-буквенно-цифровые символы, кроме пробелов
+    s = re.sub(r'[^\w\s]', '', s)
+    return s.strip()
+
 def answers_match(a, b):
+    """
+    Мягкое сравнение: true, если:
+    - строки равны после нормализации,
+    - одна содержит другую,
+    - последние числа в строках равны,
+    - строки равны после удаления единиц измерения и пунктуации.
+    """
     a_norm = normalize(a)
     b_norm = normalize(b)
     if a_norm == b_norm:
         return True
     if a_norm in b_norm or b_norm in a_norm:
         return True
+    # Сравниваем последние числа (если оба содержат числа)
     num_a = extract_number(a)
     num_b = extract_number(b)
-    return normalize(num_a) == normalize(num_b)
+    if re.search(r'\d', a) and re.search(r'\d', b):
+        if normalize(num_a) == normalize(num_b):
+            return True
+    # Сравниваем после удаления единиц измерения
+    a_clean = remove_units(a)
+    b_clean = remove_units(b)
+    return a_clean == b_clean
 
 def calc_baseline_stats(filename):
     correct = total = 0.0
@@ -92,7 +116,6 @@ def calc_meta_stats(filename):
                 corr_full = row.get('corrected_answer', '').strip()
             init_full = row.get('initial_final', '').strip()
             if not init_full:
-                # fallback на initial_answer, если initial_final пуст
                 init_full = row.get('initial_answer', '').strip()
             if not exp or not corr_full:
                 continue
