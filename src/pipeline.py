@@ -383,7 +383,7 @@ def run_meta_correction(task, expected_answer=None, max_iterations=7):
 
 def run_task(task, expected_answer=None):
     """Обёртка для meta-correction (сохранение имени функции)"""
-    return run_meta_correction(task, expected_answer, max_iterations=3)
+    return run_meta_correction(task, expected_answer, max_iterations=7)
 
 def save_result(result, filename="data/results.csv"):
     """Без изменений – совместимость с исходным форматом CSV"""
