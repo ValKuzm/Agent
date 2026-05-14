@@ -8,7 +8,7 @@ from src.pipeline import run_task, run_baseline, run_selfreflection, save_result
 def main():
     tasks = []
     with open("data/tasks.csv", "r", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
+        reader = csv.DictReader(f, skipinitialspace=True)
         for row in reader:
             tasks.append((row["id"], row["task"], row.get("expected_answer", "")))
 
