@@ -111,7 +111,7 @@ def run_baseline(task, expected_answer=None):
 # SELF-REFLECTION (улучшенная версия с верификацией)
 # ------------------------------------------------------------
 
-def run_selfreflection(task, expected_answer=None, max_iterations=3):
+def run_selfreflection(task, expected_answer=None, max_iterations=7):
     result = {
         "task": task,
         "expected_answer": expected_answer,
@@ -230,7 +230,7 @@ def run_selfreflection(task, expected_answer=None, max_iterations=3):
 # META-CORRECTION (улучшенная версия)
 # ------------------------------------------------------------
 
-def run_meta_correction(task, expected_answer=None, max_iterations=3):
+def run_meta_correction(task, expected_answer=None, max_iterations=7):
     result = {
         "task": task,
         "expected_answer": expected_answer,
